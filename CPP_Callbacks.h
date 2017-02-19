@@ -1,24 +1,24 @@
-#ifndef __SIMPLE_CALLBACKS_H
-#define __SIMPLE_CALLBACKS_H
+#ifndef __PUGBACK_CALLBACKS_H
+#define __PUGBACK_CALLBACKS_H
+
 #include <vector>
+#include <string> 
+#include <iostream>
 
 	// The results from a callback.
-#define PUG_RESULTS_SUCCESS 1   // The callback return 0
-#define PUG_RESULTS_FAILURE 2   // The callback return non-0
-#define PUG_RESULTS_INVALID 3   // Invalid settings or unable to call it back.
-#define PUG_RESULTS_DISABLED 4
+#define PUG_RESULTS_SUCCESS 1    // Success.
+#define PUG_RESULTS_FAILURE 2    // Failure.
+#define PUG_RESULTS_INVALID 3    // Invalid settings or unable to call it back.
+#define PUG_RESULTS_DISABLED 4	 // Used when the callback is disabled.
 #define PUG_RESULTS_CREATEDNEW 5 // Used with groups when one does not exist it will create new one.
 
-
-
-	// Define the threading, this enables semaphores.
+	// Define the threading, this enables Mutex to prevent two threads editing the stack at the same time.
 #define PUG_ENABLE_THREADING
 
 
 	// If multi-threading is enabled include the required libraries.
 #ifdef PUG_ENABLE_THREADING         
-	#include <mutex>         
-	#include <condition_variable>
+	#include <mutex>
 #endif 
 
 /* Example callback function.
@@ -55,9 +55,6 @@ class PUG_CallBack {
 		// If the callback is disabled.
 	private: bool Disabled;
 
-		// Override the groupID and take all callbacks.
-	private: bool AcceptAll;
-
 		// The callback function.
 	private: int (*CallbackFunc)(void*);
 			
@@ -88,12 +85,6 @@ class PUG_CallBack {
 		CallbackFunc = arg;
 	}
 
-	public: void SetAcceptAll(bool arg) {
-		AcceptAll = arg;
-	}
-	public: bool GetAcceptAll() {
-		return AcceptAll;
-	}
 
 		// The do the callback.
 	public: int DoCallback(void *arg) {
@@ -218,7 +209,7 @@ class PUG_CallBack_Engine {
 	}
 
 		// Get the list of groups.
-	public: std::vector<std::string> Info_GetList() {
+	public: std::vector<std::string> Info_GetGroupList() {
 
 		std::vector<std::string> Results;
 
@@ -302,7 +293,7 @@ class PUG_CallBack_Engine {
 	}
 		
 		// Add the callback to the event listener (do not use mutex inside this).
-	public: int AddCallBack( std::string Name, std::string GroupName, int CallbackFunc(void *a), bool AcceptAll=false ) {
+	public: int AddCallBack( std::string Name, std::string GroupName, int CallbackFunc(void *a) ) {
 
 		PUG_CallBack NewCallback;
 
@@ -310,7 +301,6 @@ class PUG_CallBack_Engine {
 		NewCallback.SetID(0); //todo
 		NewCallback.SetName(Name);
 		NewCallback.SetCallback(CallbackFunc);
-		NewCallback.SetAcceptAll(AcceptAll);
 		NewCallback.SetGroupID(0);//todo
 
 			// If threading is enabled force the mutex to be locked before hand.
@@ -395,16 +385,45 @@ class PUG_CallBack_Engine {
 		return PUG_RESULTS_SUCCESS;
 	}
 
+		// Display the list of groups and callbacks.
+	public: void PUG_PS() {
+
+			// Get the list of group names.
+		std::vector<std::string> Names = Info_GetGroupList();
+
+		for (unsigned int i = 0; i < Names.size(); i++) {
+
+			std::string GroupName = "'" + Names[i] + "'";
+			std::string Hooks = "  ID:  'Name'  IsDisabled\n";
+
+				// Get the callbacks.
+			std::vector<PUG_CallBack> Calls = Info_GetCallbackFromGroup(Names[i]);
+
+			for (unsigned int g = 0; g < Calls.size(); g++) {
+
+				Hooks += "  " + std::to_string(Calls[g].GetID()) + ": '" + Calls[g].GetName() + "' IsDisabled=";
+
+				bool Disabled = Calls[g].IsEnabled();
+
+				if (Disabled) {
+					Hooks += "false\n";
+				} else {
+					Hooks += "true\n";
+				}
+			}
+
+			std::cout << GroupName << std::endl << Hooks << std::endl;
+		}
+	}
+
+
 		// Default constructor.
 	public: PUG_CallBack_Engine() {	
 		GroupID_Counter = 0;	
 	}
 };
 
-
-
-// The global callback.
+	// The global variable that is defined for callbacks.
 extern PUG_CallBack_Engine PUG;
-
 
 #endif
