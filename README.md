@@ -1,7 +1,9 @@
- # ![pageres](Pug.jpg.gif)
+
 
 # Pugback
 Pugback is a simple class that provides simple callbacks to c++. This is built to provide simple propagation of data for example user input. The user input can create a call back trigger for a group and any number of listeners can wait for it and process it.
+
+![pageres](Pug.jpg.gif)
 
 ## General information
 1. I use Mutex to make this thread safe, you can disable this by undefining 'PUG_ENABLE_THREADING'.
