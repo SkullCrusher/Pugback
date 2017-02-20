@@ -21,23 +21,12 @@
 	#include <mutex>
 #endif 
 
-/* Example callback function.
-void testfunc(void *somestr) {
-	std::string CC = PugGetValue<std::string>(somestr);
-}
-
-int func(int CC(void *a)) {
-	return 0;
-}
-
-*/
 
 	// A helper function to get the value from void *.
 template<class T>
 T PugGetValue(void * arg) {
 	return *((T*)arg);
 }
-
 
 
 	// A simple call back object that is used by the pug engine to call it back.
