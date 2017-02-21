@@ -413,6 +413,6 @@ class PUG_CallBack_Engine {
 };
 
 	// The global variable that is defined for callbacks.
-extern PUG_CallBack_Engine PUG;
+static PUG_CallBack_Engine PUG;
 
 #endif
