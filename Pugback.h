@@ -45,7 +45,10 @@ class PUG_CallBack {
 	private: bool Disabled;
 
 		// The callback function.
-	private: int (*CallbackFunc)(void*);
+	private: int (*CallbackFunc)(void*, void*);
+
+		// To use the callback on a member of a class you have to provide context to it.
+	private: void* Context;
 			
 
 		// Getters and setters.
@@ -70,8 +73,9 @@ class PUG_CallBack {
 		return Name;
 	}
 
-	public: void SetCallback(int arg(void *a)) {
+	public: void SetCallback(int arg(void *a, void *contextarg), void *context) {
 		CallbackFunc = arg;
+		Context = context;
 	}
 
 
@@ -85,7 +89,7 @@ class PUG_CallBack {
 
 		// do callback.
 		try {
-			int Result = CallbackFunc(arg);
+			int Result = CallbackFunc(arg, Context);
 
 				// Return the result of the function.
 			if (Result == 0) {
@@ -116,7 +120,7 @@ class PUG_CallBack {
 
 		// Default constructor.
 	public: PUG_CallBack() {
-
+		Context = NULL;
 	}
 
 		// Default destructor.
@@ -282,14 +286,14 @@ class PUG_CallBack_Engine {
 	}
 		
 		// Add the callback to the event listener (do not use mutex inside this).
-	public: int AddCallBack( std::string Name, std::string GroupName, int CallbackFunc(void *a) ) {
+	public: int AddCallBack( std::string Name, std::string GroupName, int CallbackFunc(void *a, void *contextarg), void* Context=NULL ) {
 
 		PUG_CallBack NewCallback;
 
 			// Fill in the callback.
 		NewCallback.SetID(0); //todo
 		NewCallback.SetName(Name);
-		NewCallback.SetCallback(CallbackFunc);
+		NewCallback.SetCallback(CallbackFunc, Context);
 		NewCallback.SetGroupID(0);//todo
 
 			// If threading is enabled force the mutex to be locked before hand.
