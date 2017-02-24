@@ -19,12 +19,12 @@ There is a global pug engine that is defined in the file that should be used. Th
 
 
 ```c++
-#include <iostream>
+// The following is for adding a callback to a global function or static.
 
+#include <iostream>
 #include "Pugback.h"
 
-
-int Example(void *A) {
+int Example(void *A, void* context) {
 
 	std::string Tmp = PugGetValue<std::string>(A);
 
@@ -35,17 +35,46 @@ int main() {
 
 		// Create a callback "name", "group" and callback function.
 	PUG.AddCallBack("Callback Name", "Example Group", Example);
+	
+	std::string Data = "Pugs"; // Example value to send.
+	
+	PUG.DoCallBack("Example Group", &Data); // Preform the callback.
 
-		// Example value to send.
-	std::string Data = "Pugs";
-
-		// Preform the callback.
-	PUG.DoCallBack("Example Group", &Data);
-
-		// Print out the list of groups and hooks.
-	PUG.PUG_PS();
-
+	PUG.PUG_PS(); // Print out the list of groups and hooks.
 
 	return 0;
 }
+```
+
+For class members you have to provide context to the callback so it knows what class it's calling.
+```c++
+#include <iostream>
+#include <string>
+#include "Pugback.h"
+
+class example {
+
+	static int forwarder(void* value, void * context) {
+		return static_cast<example*>(context)->Init(value, context);		
+	}
+
+	public: int Init(void *arg, void* context) {
+	
+		std::string Tmp = PugGetValue<std::string>(arg);
+
+		return 0;
+	}
+
+
+	example() {
+			// Add the hook.			
+		PUG.AddCallBack("Callback Name", "Example group", &forwarder, this);
+	
+		std::string Test = "AAA";
+
+			// Do the call back.
+		PUG.DoCallBack("Example group", &Test);
+	}
+
+};
 ```
